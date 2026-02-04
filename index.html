@@ -1,0 +1,29 @@
+<div class="container">
+    <h2>Выберите категории:</h2>
+    <div style="text-align: left; display: inline-block;">
+        <label><input type="checkbox" class="category" data-name="Дизайн"> Дизайн</label><br>
+        <label><input type="checkbox" class="category" data-name="Разработка"> Разработка</label><br>
+        <label><input type="checkbox" class="category" data-name="Маркетинг"> Маркетинг</label><br>
+        <label><input type="checkbox" class="category" data-name="Аналитика"> Аналитика</label>
+    </div>
+    <br>
+    <button id="main-btn" onclick="sendCategories()">Сохранить выбор</button>
+</div>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    function sendCategories() {
+        const checkboxes = document.querySelectorAll('.category');
+        const results = {};
+
+        checkboxes.forEach(cb => {
+            // Записываем true (если галочка есть) или false (если нет)
+            results[cb.getAttribute('data-name')] = cb.checked;
+        });
+
+        // Превращаем объект в строку JSON и отправляем боту
+        tg.sendData(JSON.stringify(results));
+    }
+</script>
