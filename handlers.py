@@ -5,7 +5,7 @@ from aiogram.filters import Command, MagicData
 from aiogram.enums import ChatAction
 import asyncio
 import os
-from data import add_to_db, init_db, get_from_db, init_user_db, add_to_user_db, delet_from_db, user_to_check, get_from_user_db, delet_from_user_db
+from data import add_to_db, init_db, get_from_db, init_user_db, add_to_user_db, delet_from_db, user_to_check, get_from_user_db, delet_from_user_db, init_info_db, add_to_info_db
 import datetime
 from email_report import send_email_report, EMAIL_PATTERN
 from voice import transcribe_voice
@@ -31,9 +31,10 @@ async def start(message: types.Message, state: FSMContext):
 async def handle_web_app_data(message: types.Message):
     raw_data = message.web_app_data.data
     data = json.loads(raw_data)
-    
-    print(f"Получены чекбоксы: {data['items']}")
-    await message.answer(f"Данные получены! Выбрано: {len(data['items'])} шт.")
+    init_info_db()
+    add_to_info_db(message.from_user.id, data, datetime.datetime.now().strftime('%Y-%m-%d'))
+    print(f"Получены чекбоксы: {data}")
+    await message.answer(f"Данные получены!")
 
 @router.message(F.text.lower().startswith('запиши'))
 async def write(message: types.Message):

@@ -18,9 +18,17 @@ def init_user_db():
     conn.commit()
     return conn
 
+def init_info_db():
+    conn = sqlite3.connect('info.db')
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS info 
+                      (user_id TEXT, info TEXT, time TEXT)''')
+    conn.commit()
+    return conn
+
 def add_to_db(keyword, info, date):
     try:
-        with sqlite3.connect('engineer.db') as conn:
+        with sqlite3.connect('info.db') as conn:
             cursor = conn.cursor()
             date = datetime.datetime.now().strftime('%Y-%m-%d')
             cursor.execute("INSERT INTO engineer VALUES (?, ?, ?)", (keyword, info, date,))
@@ -40,6 +48,18 @@ def add_to_user_db(user_id, name):
     except Exception as e:
         print(f"Ошибка БД: {e}")
         return False
+    
+def add_to_info_db(user_id, info, time):
+    try:
+        with sqlite3.connect('info.db') as conn:
+            cursor = conn.cursor()
+            time = datetime.datetime.now().strftime('%Y-%m-%d')
+            cursor.execute("INSERT INTO info VALUES (?, ?, ?)", (user_id, info, time,))
+            conn.commit()
+        return True
+    except Exception as e:
+        print(f"Ошибка БД: {e}")
+        return False
 
 def get_from_db(keyword):
     with sqlite3.connect('engineer.db') as conn:
@@ -53,6 +73,14 @@ def get_from_user_db(user_id):
     with sqlite3.connect('user.db') as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT name FROM user WHERE user_id LIKE ?", (user_id,))
+        result = cursor.fetchone()
+        conn.commit()
+        return result[0] if result else None
+    
+def get_from_info_db(user_id):
+    with sqlite3.connect('info.db') as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT info FROM info WHERE user_id LIKE ?", (user_id,))
         result = cursor.fetchone()
         conn.commit()
         return result[0] if result else None
