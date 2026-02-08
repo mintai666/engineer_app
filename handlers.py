@@ -1,15 +1,18 @@
 from aiogram import types, Router, F
+from aiogram.types import FSInputFile
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command, MagicData
 from aiogram.enums import ChatAction
 import asyncio
 import os
-from data import add_to_db, init_db, get_from_db, init_user_db, add_to_user_db, delet_from_db, user_to_check, get_from_user_db, delet_from_user_db, init_info_db, add_to_info_db
+from table import create, find_file
+from data import (add_to_db, init_db, get_from_db, init_user_db, add_to_user_db, delet_from_db, user_to_check, get_from_user_db, 
+                 delet_from_user_db, init_info_db, add_to_info_db, get_from_info_db)
 import datetime
 from email_report import send_email_report, EMAIL_PATTERN
 from voice import transcribe_voice
-from keyboards import keyboard1 as kb1, keyboard2 as kb2, keyboard3 as kb3
+from keyboards import keyboard1 as kb1, keyboard2 as kb2, keyboard3 as kb3, keyboard4 as kb4, keyboard5 as kb5
 import json
 from aiogram.types import WebAppInfo
 
@@ -30,19 +33,40 @@ async def start(message: types.Message, state: FSMContext):
 @router.message(F.content_type == "web_app_data")
 async def handle_web_app_data(message: types.Message):
     raw_data = message.web_app_data.data
-    data = json.loads(raw_data)
-    init_info_db()
-    add_to_info_db(message.from_user.id, data, datetime.datetime.now().strftime('%Y-%m-%d'))
-    print(f"Получены чекбоксы: {data}")
-    await message.answer(f"Данные получены!")
+    # data = json.loads(raw_data)
+    init_db()
+    add_to_db(message.from_user.id, raw_data)
+    print(f"Получены чекбоксы: {raw_data}")
+    await message.answer(f"Данные получены!", reply_markup=kb4)
+
+@router.callback_query(F.data == ('form'))
+async def generate_order(callback: types.CallbackQuery):
+    await callback.message.answer('Формирование...')
+    create(callback.from_user.id)
+    await callback.message.answer(text='Отчет сформирован!', reply_markup=kb5)
+    
+@router.callback_query(F.data == ('show'))
+async def show(callback: types.CallbackQuery):
+    try:
+        excel_file = find_file(callback.from_user.id)
+        document = types.FSInputFile(path=excel_file)
+        await callback.message.answer_document(document, caption="✅")
+    except Exception as e:
+        await callback.message.answer(f"⚠️ Произошла ошибка: {e}")
+
+@router.callback_query(F.data == ('send'))
+async def send(callback: types.CallbackQuery):
+    excel_file = find_file(callback.from_user.id)
+    send_email_report(excel_file)
+    await callback.message.answer(text='Отчет отправлен на почту')
 
 @router.message(F.text.lower().startswith('запиши'))
 async def write(message: types.Message):
-    init_db()
+    init_info_db()
     data = message.text.replace("запиши", "").strip() if 'запиши'in message.text else message.text.replace("Запиши", "").strip()
     if " это " in data:
         key, val = data.split(" это ", 1)
-        add_to_db(key.strip(), val.strip(), date = datetime.datetime.now().strftime('%Y-%m-%d'))
+        add_to_info_db(key.strip(), val.strip())
         await message.answer(text=f"Я сохранил информацию о {key}")
         print(f"Я сохранил информацию о {key}")
     else:
@@ -53,13 +77,13 @@ async def write(message: types.Message):
 @router.message(F.text.lower().startswith('найди'))
 async def read(message: types.Message):
     data = message.text.replace('найди', "").strip() if 'найди' in message.text else message.text.replace('Найди', "").strip()
-    await message.answer(get_from_db(data))
+    await message.answer(get_from_info_db(data))
 
-@router.message(F.text.lower().startswith('удали'))
-async def read(message: types.Message):
-    data = message.text.replace("удали", "").strip() if 'удали' in message.text else message.text.replace("Удали", "").strip()
-    delet_from_db(data)
-    await message.answer(text=f'Информация о {data} удалена')
+# @router.message(F.text.lower().startswith('удали'))
+# async def read(message: types.Message):
+#     data = message.text.replace("удали", "").strip() if 'удали' in message.text else message.text.replace("Удали", "").strip()
+#     delet_from_info_db(data)
+#     await message.answer(text=f'Информация о {data} удалена')
 
 @router.message(F.text.startswith('Отчёт'))
 async def report(message: types.Message):

@@ -1,33 +1,60 @@
 import openpyxl
 from datetime import datetime
+import os
+from data import get_from_db
+import glob
 
-# Загружаем ваш шаблон
-wb = openpyxl.load_workbook('Зака - наряд.xlsx')
-sheet = wb.active
+def create(user_id):
+    file_path = None
+    data = get_from_db(user_id)['payload']
+    print(data)
+    if not data:
+        return None
+    if isinstance(data, dict):
+        try:
+            wb = openpyxl.load_workbook('Заказ - наряд.xlsx')
+        except FileNotFoundError:
+            print("Ошибка: Не найден файл шаблона 'Заказ - наряд.xlsx'")
+            return None
+            
+        ws = wb.active
+        start_row = 14
 
-# Данные для заполнения
-order_number = "2026-05"
-customer = "Картоноделательная машина №2"
-works = [
-    ("Чистка вала", 1),
-    ("Проверка затяжки болтов", 12),
-    ("Замена смазки", 2)
-]
+        for row in range(start_row, 200):
+            cell_name = ws.cell(row=row, column=2).value
+                
+            if not cell_name:
+                continue
 
-# 1. Заполняем заголовок (Номер и Дата)
-sheet['A4'] = f"ЗАКАЗ - ПАСПОРТ № ПР-{order_number} от {datetime.now().strftime('%d.%m.%Y')}"
+            work_name = str(cell_name).strip()
 
-# 2. Меняем заказчика
-sheet['A6'] = f"Заказчик: {customer}"
-
-# 3. Заполняем таблицу работ (начиная с 13 строки)
-start_row = 13
-for i, (name, qty) in enumerate(works):
-    current_row = start_row + i
-    sheet.cell(row=current_row, column=1).value = i + 1    # Номер п/п
-    sheet.cell(row=current_row, column=2).value = name     # Наименование
-    sheet.cell(row=current_row, column=12).value = qty    # Количество
-
-# Сохраняем результат
-wb.save('Готовый_Заказ_Наряд.xlsx')
-print("Документ успешно заполнен!")
+            if work_name in data:
+                value = data[work_name]
+            
+                quantity = 0
+                if value is True:
+                    quantity = 1
+                elif value is False:
+                    quantity = 0
+                elif isinstance(value, (int, float)):
+                    quantity = value
+                
+                if quantity > 0:
+                    ws.cell(row=row, column=12).value = quantity
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                filename = f"Order_{user_id}_{timestamp}.xlsx"
+                os.makedirs(r"c:\engineer\reports", exist_ok=True)
+                file_path = os.path.join('reports', filename)
+            wb.save(file_path)
+        return file_path
+    
+def find_file(user_id):
+    search_pattern = f"c:/engineer/reports/Order_{user_id}_*.xlsx"
+    print(f"Ищу файлы по пути: {search_pattern}")
+    files = glob.glob(search_pattern)
+    
+    if not files:
+        return None
+    last_file = max(files, key=os.path.getmtime)
+    
+    return last_file

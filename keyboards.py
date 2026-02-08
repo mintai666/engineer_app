@@ -16,3 +16,12 @@ keyboard2 = InlineKeyboardMarkup(inline_keyboard=[
 keyboard3 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Профиль', callback_data='prof')]
 ])
+
+keyboard4 = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Сформировать отчет', callback_data='form')]
+])
+
+keyboard5 = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Отправить на почту', callback_data='send')],
+    [InlineKeyboardButton(text='Посмотреть', callback_data='show')]
+])
