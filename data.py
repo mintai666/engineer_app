@@ -41,8 +41,9 @@ def init_info_db():
                         host="127.0.0.1",
                         port="5432")
     cursor = conn.cursor()
+    cursor.execute("SET TIME ZONE 'Asia/Yekaterinburg';")
     cursor.execute('''CREATE TABLE IF NOT EXISTS info 
-                      (key TEXT, info TEXT)''')
+                      (key TEXT, info TEXT, date DATE DEFAULT CURRENT_DATE)''')
     conn.commit()
     return conn
 
@@ -73,7 +74,7 @@ def add_to_user_db(user_id, name):
         print(f"Ошибка БД: {e}")
         return False
     
-def add_to_info_db(key, info):
+def add_to_info_db(key, info, date):
     try:
         with psycopg2.connect(database="info.db",
                         user="postgres",
@@ -81,7 +82,7 @@ def add_to_info_db(key, info):
                         host="127.0.0.1",
                         port="5432") as conn:
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO info VALUES (?, ?, ?)", (key, info,))
+            cursor.execute("INSERT INTO info VALUES (?, ?, ?)", (key, info, date))
             conn.commit()
         return True
     except Exception as e:
@@ -119,6 +120,18 @@ def get_from_info_db(key):
         result = cursor.fetchone()
         conn.commit()
         return result[0] if result else None
+    
+def get_all_from_info_db(date):
+     with sqlite3.connect(database="info.db",
+                        user="postgres",
+                        password=password,
+                        host="127.0.0.1",
+                        port="5432") as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT info FROM info WHERE date = %s", (date,))
+        result = cursor.fetchone()
+        conn.commit()
+        return result if result else None
     
 def delet_from_db(keyword):
     with sqlite3.connect('engineer.db') as conn:

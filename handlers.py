@@ -8,11 +8,11 @@ import asyncio
 import os
 from table import create, find_file
 from data import (add_to_db, init_db, get_from_db, init_user_db, add_to_user_db, delet_from_db, user_to_check, get_from_user_db, 
-                 delet_from_user_db, init_info_db, add_to_info_db, get_from_info_db)
+                 delet_from_user_db, init_info_db, add_to_info_db, get_from_info_db, get_all_from_info_db)
 import datetime
 from email_report import send_email_report, EMAIL_PATTERN
 from voice import transcribe_voice
-from keyboards import keyboard1 as kb1, keyboard2 as kb2, keyboard3 as kb3, keyboard4 as kb4, keyboard5 as kb5
+from keyboards import keyboard1 as kb1, keyboard2 as kb2, keyboard3 as kb3, keyboard4 as kb4, keyboard5 as kb5, keyboard6 as kb6, keyboard7 as kb7
 import json
 from aiogram.types import WebAppInfo
 
@@ -23,6 +23,9 @@ class Base(StatesGroup):
     wait_name = State()
     wait_new_name = State()
     wait_time = State()
+    wait_add = State()
+    wait_del = State()
+    wait_find = State()
 
 @router.message(Command('start'))
 async def start(message: types.Message, state: FSMContext):
@@ -75,7 +78,7 @@ async def write(message: types.Message):
 # python -m run 
 
 @router.message(F.text.lower().startswith('найди'))
-async def read(message: types.Message):
+async def read2(message: types.Message):
     data = message.text.replace('найди', "").strip() if 'найди' in message.text else message.text.replace('Найди', "").strip()
     await message.answer(get_from_info_db(data))
 
@@ -85,18 +88,55 @@ async def read(message: types.Message):
 #     delet_from_info_db(data)
 #     await message.answer(text=f'Информация о {data} удалена')
 
-@router.message(F.text.startswith('Отчёт'))
-async def report(message: types.Message):
-    try:
-        send_email_report()
-        # if flag == False:
-        #     await message.answer(text='За сегодня записей нет')
-        # else:
-        await message.answer(text='Отчет отправлен на почту')
-    except Exception as e:
-        await message.answer(text='Ошибка отправки')
-        print(f"Ошибка отправки: {e}")
-        return False
+@router.message(F.text.startswith('Заметки'))
+async def notes(message: types.Message):
+    await message.answer(text='Выберите действие', reply_markup=kb6)
+
+@router.callback_query(F.data == 'add')
+async def add_note(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(Base.wait_add)
+    await callback.message.answer(text='Чтобы добавить заметку, напишите или скажите фразу в формате "запиши ключ ЭТО значение"')
+
+@router.message(Base.wait_add)
+async def add_note2(message: types.Message, state: FSMContext):
+    init_info_db()
+    data = message.text.replace("запиши", "").strip() if 'запиши'in message.text else message.text.replace("Запиши", "").strip()
+    if " это " in data:
+        key, val = data.split(" это ", 1)
+        try:
+            add_to_info_db(key.strip(), val.strip())
+            await message.answer(text=f"Я сохранил информацию о {key}")
+            print(f"Я сохранил информацию о {key}")
+        except Exception as e:
+            print(e)
+            await message.answer(text='Ошибка БД. Не удалось сохранить заметку')
+    else:
+        await message.answer(text='Не удалось сохранить заметку')
+    await state.clear()
+
+@router.callback_query(F.data == 'add')
+async def add_note(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(Base.wait_del)
+    await callback.message.answer(text='Чтобы удалить заметку, напишите или скажите фразу в формате "удали ключ"')
+
+@router.callback_query(F.data == 'shownotes')
+async def dell(callback: types.CallbackQuery):
+    await callback.message.answer(text='Выберите действие', reply_markup=kb7)
+
+@router.callback_query(F.data == 'find')
+async def find_note(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(Base.wait_find)
+    await callback.message.answer(text='Чтобы найти заметку, напишите или скажите фразу в формате "найди ключ"')
+
+@router.message(Base.wait_find)
+async def find_note2(message: types.Message, state: FSMContext):
+    read2(message)
+    await state.clear()
+
+@router.callback_query(F.data == 'allnotes')
+async def allnotes(callback: types.CallbackQuery):
+    print(get_all_from_info_db(datetime.date.today()))
+
 
 @router.message(F.text.startswith('Настройки'))
 async def setting(message: types.Message):
