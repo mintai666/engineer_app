@@ -7,8 +7,8 @@ from aiogram.enums import ChatAction
 import asyncio
 import os
 from table import create, find_file
-from data import (add_to_db, init_db, get_from_db, init_user_db, add_to_user_db, delet_from_db, user_to_check, get_from_user_db, 
-                 delet_from_user_db, init_info_db, add_to_info_db, get_from_info_db, get_all_from_info_db)
+from data import (add_to_db, init_db, get_from_db, init_user_db, add_to_user_db, delete_from_db, user_to_check, get_from_user_db, 
+                 delete_from_user_db, init_info_db, add_to_info_db, get_from_info_db, get_all_from_info_db)
 import datetime
 from email_report import send_email_report, EMAIL_PATTERN
 from voice import transcribe_voice
@@ -63,24 +63,24 @@ async def send(callback: types.CallbackQuery):
     send_email_report(excel_file)
     await callback.message.answer(text='Отчет отправлен на почту')
 
-@router.message(F.text.lower().startswith('запиши'))
-async def write(message: types.Message):
-    init_info_db()
-    data = message.text.replace("запиши", "").strip() if 'запиши'in message.text else message.text.replace("Запиши", "").strip()
-    if " это " in data:
-        key, val = data.split(" это ", 1)
-        add_to_info_db(key.strip(), val.strip())
-        await message.answer(text=f"Я сохранил информацию о {key}")
-        print(f"Я сохранил информацию о {key}")
-    else:
-        print("Скажите, например: запиши рецепт это мука и яйца")
+# @router.message(F.text.lower().startswith('запиши'))
+# async def write(message: types.Message):
+#     init_info_db()
+#     data = message.text.replace("запиши", "").strip() if 'запиши'in message.text else message.text.replace("Запиши", "").strip()
+#     if " это " in data:
+#         key, val = data.split(" это ", 1)
+#         add_to_info_db(key.strip(), val.strip(), datetime.date.today())
+#         await message.answer(text=f"Я сохранил информацию о {key}")
+#         print(f"Я сохранил информацию о {key}")
+#     else:
+#         print("Скажите, например: запиши рецепт это мука и яйца")
 
 # python -m run 
 
-@router.message(F.text.lower().startswith('найди'))
-async def read2(message: types.Message):
-    data = message.text.replace('найди', "").strip() if 'найди' in message.text else message.text.replace('Найди', "").strip()
-    await message.answer(get_from_info_db(data))
+# @router.message(F.text.lower().startswith('найди'))
+# async def read2(message: types.Message):
+#     data = message.text.replace('найди', "").strip() if 'найди' in message.text else message.text.replace('Найди', "").strip()
+#     await message.answer(get_from_info_db(data))
 
 # @router.message(F.text.lower().startswith('удали'))
 # async def read(message: types.Message):
@@ -104,7 +104,7 @@ async def add_note2(message: types.Message, state: FSMContext):
     if " это " in data:
         key, val = data.split(" это ", 1)
         try:
-            add_to_info_db(key.strip(), val.strip())
+            add_to_info_db(key.strip(), val.strip(), datetime.date.today())
             await message.answer(text=f"Я сохранил информацию о {key}")
             print(f"Я сохранил информацию о {key}")
         except Exception as e:
@@ -114,7 +114,7 @@ async def add_note2(message: types.Message, state: FSMContext):
         await message.answer(text='Не удалось сохранить заметку')
     await state.clear()
 
-@router.callback_query(F.data == 'add')
+@router.callback_query(F.data == 'del')
 async def add_note(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(Base.wait_del)
     await callback.message.answer(text='Чтобы удалить заметку, напишите или скажите фразу в формате "удали ключ"')
@@ -130,7 +130,8 @@ async def find_note(callback: types.CallbackQuery, state: FSMContext):
 
 @router.message(Base.wait_find)
 async def find_note2(message: types.Message, state: FSMContext):
-    read2(message)
+    data = message.text.replace('найди', "").strip() if 'найди' in message.text else message.text.replace('Найди', "").strip()
+    await message.answer(get_from_info_db(data))
     await state.clear()
 
 @router.callback_query(F.data == 'allnotes')
@@ -149,7 +150,7 @@ async def fio(callback: types.CallbackQuery, state: FSMContext):
 
 @router.message(Base.wait_new_name)
 async def new_name(message: types.Message, state: FSMContext):
-    delet_from_user_db(message.from_user.id)
+    delete_from_user_db(message.from_user.id)
     add_to_user_db(message.from_user.id, message.text)
     await message.answer(text='ФИО изменено')
     await state.clear()

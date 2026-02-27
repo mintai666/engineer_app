@@ -82,7 +82,7 @@ def add_to_info_db(key, info, date):
                         host="127.0.0.1",
                         port="5432") as conn:
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO info VALUES (?, ?, ?)", (key, info, date))
+            cursor.execute("INSERT INTO info (key, info, date) VALUES (%s, %s, %s)", (key, info, date))
             conn.commit()
         return True
     except Exception as e:
@@ -110,7 +110,7 @@ def get_from_user_db(user_id):
         return result[0] if result else None
     
 def get_from_info_db(key):
-    with sqlite3.connect(database="info.db",
+    with psycopg2.connect(database="info.db",
                         user="postgres",
                         password=password,
                         host="127.0.0.1",
@@ -122,25 +122,25 @@ def get_from_info_db(key):
         return result[0] if result else None
     
 def get_all_from_info_db(date):
-     with sqlite3.connect(database="info.db",
+     with psycopg2.connect(database="info.db",
                         user="postgres",
                         password=password,
                         host="127.0.0.1",
                         port="5432") as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT info FROM info WHERE date = %s", (date,))
+        cursor.execute("SELECT * FROM info WHERE date = %s", (date,))
         result = cursor.fetchone()
         conn.commit()
-        return result if result else None
+        return (result[0],[1]) if result else None
     
-def delet_from_db(keyword):
+def delete_from_db(keyword):
     with sqlite3.connect('engineer.db') as conn:
         cursor = conn.cursor()
         cursor.execute("DELETE FROM engineer WHERE keyword LIKE ?", (keyword,))
         conn.commit()
         print(f"Записей удалено: {cursor.rowcount}")
 
-def delet_from_user_db(user_id):
+def delete_from_user_db(user_id):
     with sqlite3.connect('user.db') as conn:
         cursor = conn.cursor()
         cursor.execute("DELETE FROM user WHERE user_id LIKE ?", (user_id,))
