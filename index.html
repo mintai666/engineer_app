@@ -2,6 +2,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
+        tg.ready();
 
         function sendCategories() {
             const checkboxes = document.querySelectorAll('.category');
@@ -49,6 +50,14 @@
         <label><input type="checkbox" class="category" data-name="Заполнение подшипника смазкой (привод)"> Заполнение подшипника смазкой (привод)</label><br><br>
         <label><input type="checkbox" class="category" data-name="Монтаж крышки корпуса подшипникового узла (привод)"> Монтаж крышки корпуса подшипникового узла (привод)</label><br><br>
 
+    </div>
+    <br>
+    <div>
+        <form action="upload.php" method="post" enctype="multipart/form-data">
+                Выберите фото:
+            <input type="file" name="fileToUpload" id="fileToUpload">
+            <input type="submit" value="Загрузить фото" name="submit">
+        </form>
     </div>
     <br>
     <button style="

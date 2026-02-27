@@ -18,6 +18,8 @@ def create(user_id):
             return None
             
         ws = wb.active
+        ws.cell(8, 3, data['Вал сукноведущий'])
+
         start_row = 14
 
         for row in range(start_row, 200):
