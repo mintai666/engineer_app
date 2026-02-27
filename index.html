@@ -12,9 +12,32 @@
             const data = field.value;
             const file = image.files[0];
             results['Вал сукноведущий'] = data;
-            const base64 = await toBase64(file);
-            results['image'] = base64;
+            const scriptUrl = "https://script.google.com/macros/s/AKfycbzOO5BmWrb0DohcWXn2rusLs8-c9_dR0LkUWjTItjVjWKNACrtDTgJy13w59pLcAR1E/exec";
 
+            const reader = new FileReader();
+
+            reader.onload = async function(e) {
+            const base64Content = e.target.result.split(',')[1];
+                const params = new URLSearchParams({
+                    fileBase64: base64Content,
+                    mimeType: file.type,
+                    fileName: file.name
+        });
+            // try {
+            // Отправляем данные в Google
+            await fetch(scriptUrl, {
+                method: "POST",
+                mode: "no-cors", // Чтобы Google принял запрос от другого домена
+                body: params
+            });
+            
+            
+            
+        };
+        
+
+         reader.readAsDataURL(file);
+        
             checkboxes.forEach(cb => {
                 // Записываем true (если галочка есть) или false (если нет)
                 results[cb.getAttribute('data-name')] = cb.checked;
