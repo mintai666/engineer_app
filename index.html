@@ -5,18 +5,24 @@
         tg.ready();
 
         async function sendCategories() {
+            alert("Кнопка нажата!");
             const checkboxes = document.querySelectorAll('.category');
             const field = document.getElementById("main_field");
             const image = document.getElementById("fileInput")
             const results = {};
             const data = field.value;
             const file = image.files[0];
+            if (!fileInput.files[0]) {
+            alert("Файл не выбран в инпуте!");
+            return;
+            }
             results['Вал сукноведущий'] = data;
             const scriptUrl = "https://script.google.com/macros/s/AKfycbzOO5BmWrb0DohcWXn2rusLs8-c9_dR0LkUWjTItjVjWKNACrtDTgJy13w59pLcAR1E/exec";
 
             const reader = new FileReader();
 
             reader.onload = async function(e) {
+                alert("Файл прочитан, отправляю в Google...");
             const base64Content = e.target.result.split(',')[1];
                 const params = new URLSearchParams({
                     fileBase64: base64Content,
@@ -25,15 +31,15 @@
                 });
             try {
             // Отправляем данные в Google
-            await fetch(scriptUrl, {
-                method: "POST",
-                mode: "no-cors", // Чтобы Google принял запрос от другого домена
-                body: params
-            });
-            alert("Фото успешно отправлено на диск!");
+                await fetch(scriptUrl, {
+                    method: "POST",
+                    mode: "no-cors", // Чтобы Google принял запрос от другого домена
+                    body: params
+                });
+                alert("Фото успешно отправлено на диск!");
             } catch (error) {
-            alert("Ошибка сети");
-            console.error(error);
+                alert("Ошибка сети");
+                console.error(error);
                 }
             };
 
