@@ -2,14 +2,13 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         const tg = window.Telegram.WebApp;
-        ;
 
         function sendCategories() {
             const checkboxes = document.querySelectorAll('.category');
             const field = document.getElementById("main_field");
             const results = {};
             const data = field.value;
-            results.put('Вал сукноведущий', data)
+            results['Вал сукноведущий'] = data;
 
             checkboxes.forEach(cb => {
                 // Записываем true (если галочка есть) или false (если нет)
