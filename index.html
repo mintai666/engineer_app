@@ -23,18 +23,19 @@
                     mimeType: file.type,
                     fileName: file.name
         });
-            // try {
+            try {
             // Отправляем данные в Google
             await fetch(scriptUrl, {
                 method: "POST",
                 mode: "no-cors", // Чтобы Google принял запрос от другого домена
                 body: params
             });
-            
-            
-            
-        };
-        
+            alert("Фото успешно отправлено на диск!");
+            } catch (error) {
+            alert("Ошибка сети");
+            console.error(error);
+        }
+    };
 
          reader.readAsDataURL(file);
         
