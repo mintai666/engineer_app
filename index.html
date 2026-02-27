@@ -22,7 +22,7 @@
                     fileBase64: base64Content,
                     mimeType: file.type,
                     fileName: file.name
-        });
+                });
             try {
             // Отправляем данные в Google
             await fetch(scriptUrl, {
@@ -34,19 +34,19 @@
             } catch (error) {
             alert("Ошибка сети");
             console.error(error);
-        }
-    };
+                }
+            };
 
             reader.readAsDataURL(file);
         
             checkboxes.forEach(cb => {
                 // Записываем true (если галочка есть) или false (если нет)
                 results[cb.getAttribute('data-name')] = cb.checked;
-            });
+                });
 
             // Превращаем объект в строку JSON и отправляем боту
             tg.sendData(JSON.stringify(results));
-        }
+            }
     </script>
 </head>
 <div class="container">
