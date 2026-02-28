@@ -14,23 +14,25 @@
             const file = image.files[0];
             const formData = new FormData();
             formData.append('image', file);
-
-            const response = await fetch('http://localhost:5000/upload', {
-                method: 'POST',
-                body: formData
-            });
-
+            
             const result = await response.text();
             console.log(result);
             
             results['Вал сукноведущий'] = data;
             
-        
             checkboxes.forEach(cb => {
                 results[cb.getAttribute('data-name')] = cb.checked;
                 });
 
             tg.sendData(JSON.stringify(results));
+            try{
+                const response = await fetch('http://localhost:5000/upload', {
+                method: 'POST',
+                body: formData
+            });}
+            finally {
+                window.Telegram.WebApp.close();
+            }
             }
     </script>
 </head>
