@@ -12,45 +12,24 @@
             const results = {};
             const data = field.value;
             const file = image.files[0];
-            if (!fileInput.files[0]) {
-            alert("Файл не выбран в инпуте!");
-            return;
-            }
+            const formData = new FormData();
+            formData.append('image', file);
+
+            const response = await fetch('http://localhost:5000/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.text();
+            console.log(result);
+            
             results['Вал сукноведущий'] = data;
-            const scriptUrl = "https://script.google.com/macros/s/AKfycbzOO5BmWrb0DohcWXn2rusLs8-c9_dR0LkUWjTItjVjWKNACrtDTgJy13w59pLcAR1E/exec";
-
-            const reader = new FileReader();
-
-            reader.onload = async function(e) {
-                alert("Файл прочитан, отправляю в Google...");
-            const base64Content = e.target.result.split(',')[1];
-                const params = new URLSearchParams({
-                    fileBase64: base64Content,
-                    mimeType: file.type,
-                    fileName: file.name
-                });
-            try {
-            // Отправляем данные в Google
-                await fetch(scriptUrl, {
-                    method: "POST",
-                    mode: "no-cors", // Чтобы Google принял запрос от другого домена
-                    body: params
-                });
-                alert("Фото успешно отправлено на диск!");
-            } catch (error) {
-                alert("Ошибка сети");
-                console.error(error);
-                }
-            };
-
-            reader.readAsDataURL(file);
+            
         
             checkboxes.forEach(cb => {
-                // Записываем true (если галочка есть) или false (если нет)
                 results[cb.getAttribute('data-name')] = cb.checked;
                 });
 
-            // Превращаем объект в строку JSON и отправляем боту
             tg.sendData(JSON.stringify(results));
             }
     </script>
