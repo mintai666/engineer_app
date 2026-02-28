@@ -24,8 +24,9 @@
                 results[cb.getAttribute('data-name')] = cb.checked;
                 });
 
-            tg.sendData(JSON.stringify(results));
+            
             try{
+                tg.sendData(JSON.stringify(results));
                 const response = await fetch('http://localhost:5000/upload', {
                 method: 'POST',
                 body: formData
