@@ -8,7 +8,11 @@
         async function sendCategories() {
             try{
                 alert("Данные из телеграм: " + JSON.stringify(tg.initDataUnsafe));
-                const chatId = tg.initDataUnsafe.user.id;
+                const user = tg.initDataUnsafe?.user;
+                const chatId = user?.id;
+                if (!chatId) {
+                    alert("Ошибка: Не удалось найти ваш ID в данных Telegram");
+                }
                 const checkboxes = document.querySelectorAll('.category');
                 const field = document.getElementById("main_field");
                 const image = document.getElementById("fileInput") 
@@ -32,7 +36,7 @@
                 method: 'POST',
                 body: formData,
                 });
-                const result = await response.text();
+                const result = await response.json();
                 if (result.ok) {
                     console.log("Успешно отправлено через прокси!");
                 }
