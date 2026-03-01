@@ -20,16 +20,17 @@
                 checkboxes.forEach(cb => {
                     results[cb.getAttribute('data-name')] = cb.checked;
                     });
-
-                tg.sendData(JSON.stringify(results));
                 const response = await fetch('https://engineer.share.zrok.io', {
                 method: 'POST',
                 body: formData,
                 headers: {
                 'zrok-skip-interstitial': 'true'
-            }});
+                }});
                 const result = await response.text();
-                tg.close();
+
+                tg.sendData(JSON.stringify(results));
+                
+                // tg.close();
                 console.log(result);
             }
             finally {
