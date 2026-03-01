@@ -15,6 +15,7 @@ from voice import transcribe_voice
 from keyboards import keyboard1 as kb1, keyboard2 as kb2, keyboard3 as kb3, keyboard4 as kb4, keyboard5 as kb5, keyboard6 as kb6, keyboard7 as kb7
 import json
 from aiogram.types import WebAppInfo
+from config import folder
 
 router = Router()
 
@@ -87,6 +88,16 @@ async def send(callback: types.CallbackQuery):
 #     data = message.text.replace("удали", "").strip() if 'удали' in message.text else message.text.replace("Удали", "").strip()
 #     delet_from_info_db(data)
 #     await message.answer(text=f'Информация о {data} удалена')
+
+@router.message(F.photo)
+async def photo_handler(message: types.Message):
+    photo = message.photo[-1]
+    file_info = await message.bot.get_file(photo.file_id)
+    file_name = f"photo_{message.message_id}.jpg"
+    destination = os.path.join(folder, file_name)
+    await message.bot.download_file(file_info.file_path, destination)
+    print(f"📸 Фото успешно сохранено: {destination}")
+
 
 @router.message(F.text.startswith('Заметки'))
 async def notes(message: types.Message):

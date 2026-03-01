@@ -22,9 +22,9 @@ async def main():
     dp.shutdown.register(shutdown)
     dp.include_router(router=router)
     init_db()
-    flask_thread = threading.Thread(target=run_flask)
-    flask_thread.daemon = True # Поток умрет сам при выключении основного кода
-    flask_thread.start()
+    # flask_thread = threading.Thread(target=run_flask)
+    # flask_thread.daemon = True # Поток умрет сам при выключении основного кода
+    # flask_thread.start()
 
     await dp.start_polling(bot)
     
