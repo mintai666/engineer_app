@@ -3,10 +3,11 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
+        const chatId = tg.initDataUnsafe.user.id;
 
         async function sendCategories() {
             try{
-                const chatId = tg.initDataUnsafe.user.id;
+                
                 const checkboxes = document.querySelectorAll('.category');
                 const field = document.getElementById("main_field");
                 const image = document.getElementById("fileInput") 
