@@ -4,14 +4,23 @@
         const tg = window.Telegram.WebApp;
         tg.ready();
         
+        function getUserId() {
+    // 1. Сначала пробуем достать из URL (наш новый способ)
+            const urlParams = new URLSearchParams(window.location.search);
+            const idFromUrl = urlParams.get('user_id');
+
+    // 2. Если в URL пусто, пробуем стандартный метод Telegram
+            const idFromTg = tg.initDataUnsafe?.user?.id;
+
+            return idFromUrl || idFromTg;
+}
 
         async function sendCategories() {
             try{
                 alert("Мой URL сейчас: " + window.location.href);
                 alert("Данные из телеграм: " + JSON.stringify(tg.initDataUnsafe));
-                const user = tg.initDataUnsafe?.user;
-                const chatId = user?.id;
-                if (!chatId) {
+                const currentId = getUserId();
+                if (!currentId) {
                     alert("Ошибка: Не удалось найти ваш ID в данных Telegram");
                 }
                 const checkboxes = document.querySelectorAll('.category');

@@ -23,14 +23,14 @@ def init_db():
     return conn
 
 def init_user_db():
-    conn = sqlite3.connect(database="user.db",
+    conn = psycopg2.connect(database="userss",
                         user="postgres",
                         password=password,
                         host="127.0.0.1",
                         port="5432")
     cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS user
-                      (user_id TEXT, name TEXT)''')
+    cursor.execute('''CREATE TABLE IF NOT EXISTS users (
+                   user_id BIGINT, name TEXT);''')
     conn.commit()
     return conn
 
@@ -65,9 +65,13 @@ def add_to_db(user_id, payload):
 
 def add_to_user_db(user_id, name):
     try:
-        with sqlite3.connect('user.db') as conn:
+        with psycopg2.connect(database='userss',
+                              user="postgres",
+                                password=password,
+                                host="127.0.0.1",
+                                port="5432") as conn:
             cursor = conn.cursor()
-            cursor.execute("INSERT INTO user VALUES (?, ?)", (user_id, name,))
+            cursor.execute("INSERT INTO users (user_id, name) VALUES (%s, %s)", (user_id, name,))
             conn.commit()
         return True
     except Exception as e:
@@ -102,12 +106,17 @@ def get_from_db(user_id):
         return result if result else None
     
 def get_from_user_db(user_id):
-    with sqlite3.connect('user.db') as conn:
+    with psycopg2.connect(database='userss',
+                          user="postgres",
+                        password=password,
+                        host="127.0.0.1",
+                        port="5432") as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT name FROM user WHERE user_id LIKE ?", (user_id,))
+        cursor.execute("SELECT name FROM users WHERE user_id = %s", (user_id,))
         result = cursor.fetchone()
         conn.commit()
         return result[0] if result else None
+
     
 def get_from_info_db(key):
     with psycopg2.connect(database="info.db",
@@ -134,22 +143,30 @@ def get_all_from_info_db(date):
         return (result[0],[1]) if result else None
     
 def delete_from_db(keyword):
-    with sqlite3.connect('engineer.db') as conn:
+    with psycopg2.connect('engineer.db') as conn:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM engineer WHERE keyword LIKE ?", (keyword,))
+        cursor.execute("DELETE FROM engineer WHERE keyword = %s", (keyword,))
         conn.commit()
         print(f"Записей удалено: {cursor.rowcount}")
 
 def delete_from_user_db(user_id):
-    with sqlite3.connect('user.db') as conn:
+    with psycopg2.connect(database='userss',
+                          user="postgres",
+                        password=password,
+                        host="127.0.0.1",
+                        port="5432") as conn:
         cursor = conn.cursor()
-        cursor.execute("DELETE FROM user WHERE user_id LIKE ?", (user_id,))
+        cursor.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
         conn.commit()
 
 def user_to_check(user_id):
-     with sqlite3.connect('user.db') as conn:
+     with psycopg2.connect(database='userss',
+                            user="postgres",
+                            password=password,
+                            host="localhost",
+                            port="5432") as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT 1 FROM user WHERE user_id LIKE ?", (user_id,))
+        cursor.execute("SELECT 1 FROM users WHERE user_id = %s", (user_id,))
         result = cursor.fetchone()
         conn.commit()
         return True if result else False

@@ -12,7 +12,7 @@ from data import (add_to_db, init_db, get_from_db, init_user_db, add_to_user_db,
 import datetime
 from email_report import send_email_report, EMAIL_PATTERN
 from voice import transcribe_voice
-from keyboards import keyboard1 as kb1, keyboard2 as kb2, keyboard3 as kb3, keyboard4 as kb4, keyboard5 as kb5, keyboard6 as kb6, keyboard7 as kb7
+from keyboards import app_url, keyboard2 as kb2, keyboard3 as kb3, keyboard4 as kb4, keyboard5 as kb5, keyboard6 as kb6, keyboard7 as kb7
 import json
 from aiogram.types import WebAppInfo
 from config import folder
@@ -32,7 +32,7 @@ class Base(StatesGroup):
 async def start(message: types.Message, state: FSMContext):
     await message.bot.send_chat_action(chat_id=message.from_user.id, action=ChatAction.TYPING)
     await asyncio.sleep(1)
-    await message.answer(text='Добро пожаловать!', reply_markup=kb1, relize_keyboard=True)
+    await message.answer(text='Добро пожаловать!', reply_markup=app_url(message.from_user.id), relize_keyboard=True)
 
 @router.message(F.content_type == "web_app_data")
 async def handle_web_app_data(message: types.Message):
@@ -176,6 +176,7 @@ async def personal(message: types.Message, state: FSMContext):
                             f'Почта для отправки: {file.read()}')
     else:
         await state.set_state(Base.wait_name)
+        init_user_db()
         await message.answer(text='Отправьте ФИО в формате "Иванов И.И."')
 
 @router.message(Base.wait_name)
@@ -185,7 +186,7 @@ async def user_id_and_name(message: types.Message, state: FSMContext):
     await message.answer(text='Регистрация прошла успешно', reply_markup=kb3)
     await state.clear()
 
-@router.message(F.data == ('prof'))
+@router.callback_query(F.data == ('prof'))
 async def profile(callback: types.CallbackQuery):
     file = open('email.txt', 'r')
     await callback.message.answer(text=f'Ваш профиль:\n'
