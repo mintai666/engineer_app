@@ -5,34 +5,35 @@
         tg.ready();
 
         async function sendCategories() {
-            alert("Кнопка нажата!");
-            const checkboxes = document.querySelectorAll('.category');
-            const field = document.getElementById("main_field");
-            const image = document.getElementById("fileInput")
-            const results = {};
-            const data = field.value;
-            const file = image.files[0];
-            const formData = new FormData();
-            formData.append('image', file);
-            
-            const result = await response.text();
-            console.log(result);
-            
-            results['Вал сукноведущий'] = data;
-            
-            checkboxes.forEach(cb => {
-                results[cb.getAttribute('data-name')] = cb.checked;
-                });
-
-            
             try{
+                const checkboxes = document.querySelectorAll('.category');
+                const field = document.getElementById("main_field");
+                const image = document.getElementById("fileInput") 
+                const results = {};
+                const data = field.value;
+                const file = image.files[0];
+                const formData = new FormData();
+                formData.append('image', file);
+                
+                results['Вал сукноведущий'] = data;
+                
+                checkboxes.forEach(cb => {
+                    results[cb.getAttribute('data-name')] = cb.checked;
+                    });
+
                 tg.sendData(JSON.stringify(results));
-                const response = await fetch('http://localhost:5000/upload', {
+                const response = await fetch('https://engineer.share.zrok.io', {
                 method: 'POST',
-                body: formData
-            });}
+                body: formData,
+                headers: {
+                'zrok-skip-interstitial': 'true'
+            }});
+                const result = await response.text();
+                tg.close();
+                console.log(result);
+            }
             finally {
-                window.Telegram.WebApp.close();
+                alert('проблема')
             }
             }
     </script>
