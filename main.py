@@ -13,7 +13,7 @@ def run_flask():
     app = create_app(folder)
     print("--- Flask сервер запускается на http://127.0.0.1:5000 ---")
     # debug=True может конфликтовать с потоками, для начала ставим False
-    app.run(port=5000, debug=False, use_reloader=False)
+    app.run(port=5000, host='127.0.0.1', debug=False, use_reloader=False)
 
 async def main():
     dp = Dispatcher()
