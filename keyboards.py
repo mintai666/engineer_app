@@ -4,7 +4,6 @@ def app_url(user_id: int):
     app_url = f"https://mintai666.github.io/engineer_app/?user_id={user_id}"
     keyboard1 = ReplyKeyboardMarkup(keyboard=[
     [KeyboardButton(text='Настройки')],
-    [KeyboardButton(text='Заметки')],
     [KeyboardButton(text='Личный кабинет')],
     [KeyboardButton(text='Начать работу', web_app=WebAppInfo(url=app_url))]
 ])

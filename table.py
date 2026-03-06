@@ -3,8 +3,10 @@ from datetime import datetime
 import os
 from data import get_from_db
 import glob
+from openpyxl.drawing.image import Image
+from openpyxl.styles import Alignment
 
-def create(user_id):
+def create(user_id, caption=None):
     file_path = None
     data = get_from_db(user_id)['payload']
     print(data)
@@ -20,6 +22,31 @@ def create(user_id):
         ws = wb.active
         ws.cell(8, 3, data['Вал сукноведущий'])
 
+        def get_img(user_id):
+            files = []
+            search_pattern = f"C:/engineer/image/photo_{user_id}_*.jpg"
+            print(f"Ищу файлы по пути: {search_pattern}")
+            files = glob.glob(search_pattern)
+            return files if files else None
+        
+        photos = get_img(user_id)
+        if photos:
+            img_col = 67
+            for img_path in photos:
+                img = Image(img_path) 
+                img.width = 400
+                img.height = 500
+                anchor = f"B{img_col}"
+                ws.add_image(img, anchor)
+                img_col += 10
+        
+        print(caption)
+        if caption:
+            ws.merge_cells('N38:T38')
+            ws['N38'] = caption
+            ws.cell(row=38, column=14).value = caption 
+            ws.cell(row=38, column=14).alignment = openpyxl.styles.Alignment(wrapText=True)
+            
         start_row = 14
 
         for row in range(start_row, 200):
@@ -47,7 +74,10 @@ def create(user_id):
                 filename = f"Order_{user_id}_{timestamp}.xlsx"
                 os.makedirs(r"c:\engineer\reports", exist_ok=True)
                 file_path = os.path.join('reports', filename)
-            wb.save(file_path)
+        wb.save(file_path)
+        for i in photos:
+            if os.path.exists(i):
+                os.remove(i)
         return file_path
     
 def find_file(user_id):

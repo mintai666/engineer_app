@@ -6,6 +6,7 @@ from aiogram.filters import Command, MagicData
 from aiogram.enums import ChatAction
 import asyncio
 import os
+from datetime import datetime
 from table import create, find_file
 from data import (add_to_db, init_db, get_from_db, init_user_db, add_to_user_db, delete_from_db, user_to_check, get_from_user_db, 
                  delete_from_user_db, init_info_db, add_to_info_db, get_from_info_db, get_all_from_info_db)
@@ -16,6 +17,7 @@ from keyboards import app_url, keyboard2 as kb2, keyboard3 as kb3, keyboard4 as 
 import json
 from aiogram.types import WebAppInfo
 from config import folder
+
 
 router = Router()
 
@@ -41,12 +43,29 @@ async def handle_web_app_data(message: types.Message):
     init_db()
     add_to_db(message.from_user.id, raw_data)
     print(f"Получены чекбоксы: {raw_data}")
-    await message.answer(f"Данные получены!", reply_markup=kb4)
+    await message.answer(f"Данные получены!")
+    await message.answer('Отправьте фото. Если хотите пропустить этот этап, нажмите кнопку ниже⬇️', reply_markup=kb4)
+
+@router.message(F.photo)
+async def photo_handler(message: types.Message, state: FSMContext):
+    photo = message.photo[-1]
+    file_info = await message.bot.get_file(photo.file_id)
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    file_name = f"photo_{message.from_user.id}_{timestamp}.jpg"
+    destination = os.path.join(folder, file_name)
+    await message.bot.download_file(file_info.file_path, destination)
+    if message.caption:
+        await state.update_data(user_caption=message.caption)
+    print(f"📸 Фото успешно сохранено: {destination}")
+    await message.answer('Фото сохранено!', reply_markup=kb4)
+    
 
 @router.callback_query(F.data == ('form'))
-async def generate_order(callback: types.CallbackQuery):
+async def generate_order(callback: types.CallbackQuery, state: FSMContext):
+    user_data = await state.get_data()
+    caption = user_data.get('user_caption')
     await callback.message.answer('Формирование...')
-    create(callback.from_user.id)
+    create(callback.from_user.id, caption)
     await callback.message.answer(text='Отчет сформирован!', reply_markup=kb5)
     
 @router.callback_query(F.data == ('show'))
@@ -89,14 +108,7 @@ async def send(callback: types.CallbackQuery):
 #     delet_from_info_db(data)
 #     await message.answer(text=f'Информация о {data} удалена')
 
-@router.message(F.photo)
-async def photo_handler(message: types.Message):
-    photo = message.photo[-1]
-    file_info = await message.bot.get_file(photo.file_id)
-    file_name = f"photo_{message.message_id}.jpg"
-    destination = os.path.join(folder, file_name)
-    await message.bot.download_file(file_info.file_path, destination)
-    print(f"📸 Фото успешно сохранено: {destination}")
+
 
 
 @router.message(F.text.startswith('Заметки'))
