@@ -6,6 +6,9 @@ from aiogram.filters import Command, MagicData
 from aiogram.enums import ChatAction
 import asyncio
 import os
+import random
+from aiogram_media_group import media_group_handler
+from table import get_img
 from datetime import datetime
 from table import create, find_file
 from data import (add_to_db, init_db, get_from_db, init_user_db, add_to_user_db, delete_from_db, user_to_check, get_from_user_db, 
@@ -13,14 +16,13 @@ from data import (add_to_db, init_db, get_from_db, init_user_db, add_to_user_db,
 import datetime
 from email_report import send_email_report, EMAIL_PATTERN
 from voice import transcribe_voice
-from keyboards import app_url, keyboard2 as kb2, keyboard3 as kb3, keyboard4 as kb4, keyboard5 as kb5, keyboard6 as kb6, keyboard7 as kb7
+from keyboards import app_url, keyboard2 as kb2, keyboard3 as kb3, keyboard4 as kb4, keyboard5 as kb5, keyboard44 as kb44, aikeyboard
 import json
 from aiogram.types import WebAppInfo
 from config import folder
-
+from model import get_bearing_answer
 
 router = Router()
-
 
 class Base(StatesGroup):
     wait_name = State()
@@ -29,6 +31,8 @@ class Base(StatesGroup):
     wait_add = State()
     wait_del = State()
     wait_find = State()
+    wait_photo = State()
+    ask_model = State()
 
 @router.message(Command('start'))
 async def start(message: types.Message, state: FSMContext):
@@ -46,20 +50,42 @@ async def handle_web_app_data(message: types.Message):
     await message.answer(f"Данные получены!")
     await message.answer('Отправьте фото. Если хотите пропустить этот этап, нажмите кнопку ниже⬇️', reply_markup=kb4)
 
+@router.message(F.media_group_id)
+@media_group_handler
+async def photo_album_handler(message: list[types.Message], state: FSMContext = None):
+    for msg in message:
+        if msg.photo:
+            photo = msg.photo[-1]
+            file_info = await msg.bot.get_file(photo.file_id)
+            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            file_name = f"photo_{msg.from_user.id}_{timestamp}_{random.randint(1, 9999)}.jpg"
+            destination = os.path.join(folder, file_name)
+            await msg.bot.download_file(file_info.file_path, destination)
+        if msg.caption:
+            await state.update_data(user_caption=msg.caption)
+    print(f"📸 Фото успешно сохранено: {destination}")
+    await msg.answer(f'Фото сохранены({len(message)})!', reply_markup=kb44)
+
 @router.message(F.photo)
 async def photo_handler(message: types.Message, state: FSMContext):
     photo = message.photo[-1]
     file_info = await message.bot.get_file(photo.file_id)
     timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    file_name = f"photo_{message.from_user.id}_{timestamp}.jpg"
+    file_name = f"photo_{message.from_user.id}_{timestamp}_{random.randint(1, 9999)}.jpg"
     destination = os.path.join(folder, file_name)
     await message.bot.download_file(file_info.file_path, destination)
     if message.caption:
         await state.update_data(user_caption=message.caption)
     print(f"📸 Фото успешно сохранено: {destination}")
     await message.answer('Фото сохранено!', reply_markup=kb4)
-    
 
+@router.callback_query(F.data == ('clear'))
+async def clear_photo(callback: types.CallbackQuery):
+    for i in get_img(callback.from_user.id):
+            if os.path.exists(i):
+                os.remove(i)
+    await callback.message.answer(text='Фото удалены. Вы можете отправить другие фото или пропутить этот этап⬇️', reply_markup=kb4)
+    
 @router.callback_query(F.data == ('form'))
 async def generate_order(callback: types.CallbackQuery, state: FSMContext):
     user_data = await state.get_data()
@@ -82,6 +108,31 @@ async def send(callback: types.CallbackQuery):
     excel_file = find_file(callback.from_user.id)
     send_email_report(excel_file)
     await callback.message.answer(text='Отчет отправлен на почту')
+
+@router.message(F.text.startswith('Спросить эксперта'))
+async def ask_model(message: types.Message, state: FSMContext):
+    await state.set_state(Base.ask_model)
+    await message.answer(text=
+        "Режим эксперта по подшипникам включен. Задайте свой вопрос.\n"
+        "Чтобы выйти, напишите 'Назад'.", reply_markup=aikeyboard
+    )
+
+@router.message(Base.ask_model)
+async def answer_model(message: types.Message, state: FSMContext):
+    if message.text.lower() == "назад":
+        await state.clear()
+        await message.answer(text="Вы вышли из режима эксперта.", reply_markup=app_url(message.from_user.id))
+        return
+
+    await message.bot.send_chat_action(chat_id=message.chat.id, action="typing")
+
+    try:
+        answer = await get_bearing_answer(message.text)
+        await message.answer(text=f'{answer}')
+    
+    except Exception as e:
+        await message.answer("Произошла ошибка при обращении к нейросети. Проверьте, запущен ли Ollama.")
+        print(f"Ошибка ИИ: {e}")
 
 # @router.message(F.text.lower().startswith('запиши'))
 # async def write(message: types.Message):
@@ -111,9 +162,9 @@ async def send(callback: types.CallbackQuery):
 
 
 
-@router.message(F.text.startswith('Заметки'))
-async def notes(message: types.Message):
-    await message.answer(text='Выберите действие', reply_markup=kb6)
+# @router.message(F.text.startswith('Заметки'))
+# async def notes(message: types.Message):
+#     await message.answer(text='Выберите действие', reply_markup=kb6)
 
 @router.callback_query(F.data == 'add')
 async def add_note(callback: types.CallbackQuery, state: FSMContext):
@@ -142,9 +193,9 @@ async def add_note(callback: types.CallbackQuery, state: FSMContext):
     await state.set_state(Base.wait_del)
     await callback.message.answer(text='Чтобы удалить заметку, напишите или скажите фразу в формате "удали ключ"')
 
-@router.callback_query(F.data == 'shownotes')
-async def dell(callback: types.CallbackQuery):
-    await callback.message.answer(text='Выберите действие', reply_markup=kb7)
+# @router.callback_query(F.data == 'shownotes')
+# async def dell(callback: types.CallbackQuery):
+#     await callback.message.answer(text='Выберите действие', reply_markup=kb7)
 
 @router.callback_query(F.data == 'find')
 async def find_note(callback: types.CallbackQuery, state: FSMContext):
