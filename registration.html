@@ -3,12 +3,52 @@
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
-        async function registration(params) {
-            
+        async function registration() {
+            try{
+            const results = {};
+            const field_1 = document.getElementById("main_field_1");
+            const field_2 = document.getElementById("main_field_2");
+            const field_3 = document.getElementById("main_field_3");
+            const data_1 = field_1.value;
+            const data_2 = field_2.value;
+            const data_3 = field_3.value;
+            results['Фамилия'] = data_1;
+            results['Имя'] = data_2;
+            results['Отчество'] = data_3;
+            tg.sendData(JSON.stringify(results));
         }
+            catch (e) {
+                alert("Ошибка: " + e.message);
+            }
+            finally {
+                tg.close();
+            }
+    }
 
     </script>
 </head>
 <div>
     <h2>Регистрация</h2>
+     <div style="font-family: Verdana, sans-serif; color: #333;">
+        <form>
+            <input type="text" class="field" style="width: 100%; height: 40px; font-weight: bold; border-radius: 10px; font-size: 16px;" id="main_field_1" placeholder="Фамилия"></input>
+        </form>
+        <form>
+            <input type="text" class="field" style="width: 100%; height: 40px; font-weight: bold; border-radius: 10px; font-size: 16px;" id="main_field_2" placeholder="Имя"></input>
+        </form>
+        <form>
+            <input type="text" class="field" style="width: 100%; height: 40px; font-weight: bold; border-radius: 10px; font-size: 16px;" id="main_field_3" placeholder="Отчество"></input>
+        </form>
+    </div>
+     <button style="
+    background-color: #4b3697;
+    color: white; 
+    padding: 15px 30px; 
+    font-size: 18px; 
+    border: none;
+    border-radius: 10px;    
+    cursor: pointer;
+     width: 100%;
+    text-align: center;"
+    id="main-btn" onclick="registration()">Зарегистрироваться</button>
 </div>
