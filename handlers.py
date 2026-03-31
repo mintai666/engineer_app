@@ -16,7 +16,7 @@ from data import (add_to_db, init_db, get_from_db, init_user_db, add_to_user_db,
 import datetime
 from email_report import send_email_report, EMAIL_PATTERN
 from voice import transcribe_voice
-from keyboards import app_url, keyboard2 as kb2, keyboard3 as kb3, keyboard4 as kb4, keyboard5 as kb5, keyboard44 as kb44, aikeyboard
+from keyboards import app_url, keyboard2 as kb2, keyboard3 as kb3, keyboard4 as kb4, keyboard5 as kb5, keyboard44 as kb44, aikeyboard, main_kb
 import json
 from aiogram.types import WebAppInfo
 from config import folder
@@ -38,17 +38,27 @@ class Base(StatesGroup):
 async def start(message: types.Message, state: FSMContext):
     await message.bot.send_chat_action(chat_id=message.from_user.id, action=ChatAction.TYPING)
     await asyncio.sleep(1)
-    await message.answer(text='Добро пожаловать!', reply_markup=app_url(message.from_user.id), relize_keyboard=True)
+    init_user_db()
+    if user_to_check(message.from_user.id):
+        await message.answer(text='Добро пожаловать!', reply_markup=app_url(message.from_user.id), relize_keyboard=True)
+    else:
+        await message.answer(text='Добро пожаловать! Пройдите регистрацию', reply_markup=main_kb, relize_keyboard=True)
 
 @router.message(F.content_type == "web_app_data")
 async def handle_web_app_data(message: types.Message):
     raw_data = message.web_app_data.data
-    # data = json.loads(raw_data)
-    init_db()
-    add_to_db(message.from_user.id, raw_data)
-    print(f"Получены чекбоксы: {raw_data}")
-    await message.answer(f"Данные получены!")
-    await message.answer('Отправьте фото. Если хотите пропустить этот этап, нажмите кнопку ниже⬇️', reply_markup=kb4)
+    if 'Фамилия' in raw_data:
+        init_user_db()
+        add_to_user_db(message.from_user.id, raw_data)
+        print(f"Получены пользователи: {raw_data}")
+        await message.answer(f"Данные получены!")
+        await message.answer('Регистрация прошла успешно!', reply_markup=app_url(message.from_user.id), relize_keyboard=True)
+    else:
+        init_db()
+        add_to_db(message.from_user.id, raw_data)
+        print(f"Получены чекбоксы: {raw_data}")
+        await message.answer(f"Данные получены!")
+        await message.answer('Отправьте фото. Если хотите пропустить этот этап, нажмите кнопку ниже⬇️', reply_markup=kb4)
 
 @router.message(F.media_group_id)
 @media_group_handler

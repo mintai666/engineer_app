@@ -10,6 +10,10 @@ def app_url(user_id: int):
 ])
     return keyboard1
 
+main_kb = ReplyKeyboardMarkup(keyboard=[
+    [KeyboardButton(text='Регистрация', web_app=WebAppInfo(url='https://miint666.github.io/engineer_app_rpage/'))]
+]) 
+
 keyboard2 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Настроить почту', callback_data='setting')],
     [InlineKeyboardButton(text='Поменять ФИО', callback_data='fio')],

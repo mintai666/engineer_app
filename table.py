@@ -1,10 +1,11 @@
 import openpyxl
 from datetime import datetime
 import os
-from data import get_from_db
+from data import get_from_db, get_from_user_db
 import glob
 from openpyxl.drawing.image import Image
 from openpyxl.styles import Alignment
+import json
 
 def get_img(user_id):
             files = []
@@ -17,6 +18,7 @@ def create(user_id, caption=None):
     file_path = None
     data = get_from_db(user_id)['payload']
     print(data)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     if not data:
         return None
     if isinstance(data, dict):
@@ -28,6 +30,17 @@ def create(user_id, caption=None):
             
         ws = wb.active
         ws.cell(8, 3, data['Вал сукноведущий'])
+
+        user_data = json.loads(get_from_user_db(user_id))
+        print(user_data)
+        f = user_data['Фамилия']
+        n = user_data['Имя']
+        o = user_data['Отчество']
+        fio = f'{f} {n[0]}.{o[0]}.'
+        ws.cell(7, 7, f'Исполнитель: {fio}')
+
+        main_str = f"ЗАКАЗ - ПАСПОРТ № ПР-_________ от {timestamp.replace('_', ' ')}"
+        ws.cell(5, 1, main_str)
 
         photos = get_img(user_id)
         if photos:
@@ -71,7 +84,6 @@ def create(user_id, caption=None):
                 
                 if quantity > 0:
                     ws.cell(row=row, column=12).value = quantity
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
                 filename = f"Order_{user_id}_{timestamp}.xlsx"
                 os.makedirs(r"c:\engineer\reports", exist_ok=True)
                 file_path = os.path.join('reports', filename)
