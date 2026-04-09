@@ -58,7 +58,6 @@ def create(user_id, caption=None):
         if caption:
             ws.merge_cells('F71:L71')
             ws['F71'] = caption
-            ws.cell(row=38, column=14).value = caption #убрать это
             ws.cell(row=38, column=14).alignment = openpyxl.styles.Alignment(wrapText=True)
             
         start_row = 14
