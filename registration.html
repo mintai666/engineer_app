@@ -2,18 +2,29 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/@vkontakte/vk-bridge/dist/browser.min.js"></script>
     <script>
+        try {
+        vkBridge.send('VKWebAppInit')
+            .then(() => console.log("VK Bridge успешно запущен!"))
+            .catch(e => console.error("Ошибка при старте VK Bridge:", e));
+    } catch (err) {
+        console.error("vkBridge не доступен:", err);
+    }
+
         const urlParams = new URLSearchParams(window.location.search);
         const isVK = urlParams.has('vk_user_id');
         const isTG = !!(window.Telegram?.WebApp?.initData || urlParams.has('tgWebAppStartParam'));
 
-        // Инициализируем платформу сразу при загрузке скрипта
-        if (isVK) {
-            vkBridge.send('VKWebAppInit')
-                .then(() => console.log("VK Bridge инициализирован"))
-                .catch(e => console.error("Ошибка инициализации ВК:", e));
-        } else if (isTG) {
-            window.Telegram.WebApp.ready();
-        }
+        // if (isVK) {
+        //     vkBridge.send('VKWebAppInit')
+        //         .then(() => console.log("VK Bridge инициализирован"))
+        //         .catch(e => console.error("Ошибка инициализации ВК:", e));
+        // } else if (isTG) {
+        //     window.Telegram.WebApp.ready();
+        // }
+        if (isTG) {
+        window.Telegram.WebApp.ready();
+    }
+
         async function registration() {
             const results = {};
             const field_1 = document.getElementById("main_field_1");
@@ -36,15 +47,19 @@
             }
                     }
             else if (isVK) {
-                    // Вариант А: Отправка сообщения в ЛС группы (если юзер открыл апп из сообщества)
-                    // Это самый близкий аналог sendData для ВК
                     try {
-                        await vkBridge.send('VKWebAppShare', {
-                            // Предложит пользователю отправить свои ФИО обратно в чат бота
-                            link: `https://vk.com/write-${urlParams.get('vk_group_id') || ''}`, 
-                            text: `Мои данные регистрации: ${dataString}`
-                        });
-                    } catch (vkErr) {
+                        let groupId = urlParams.get('vk_group_id');
+                
+                    if (!groupId) groupId = "239290737"; 
+
+                    await vkBridge.send('VKWebAppShare', {
+                        link: `https://vk.com/write-${groupId}`, 
+                        text: `Мои данные регистрации: ${dataString}`
+                    });
+                
+                    vkBridge.send('VKWebAppClose', { status: 'success' });
+            }
+                    catch (vkErr) {
                         console.log("Пользователь отменил отправку или открыл не из группы");
                     }
                     finally {

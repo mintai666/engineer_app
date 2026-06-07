@@ -1,5 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
-from vkbottle import Keyboard, KeyboardButtonColor, Text, OpenLink
+from vkbottle import Keyboard, KeyboardButtonColor, Text, OpenLink, VKApps
+from config import vk_id
 
 def app_url(user_id: int):
     app_url = f"https://mintai666.github.io/engineer_app/?user_id={user_id}"
@@ -34,7 +35,7 @@ kbvk_main = (
 
 kbvk = (
         Keyboard(one_time=False, inline=True)
-        .add(OpenLink(link="https://miint666.github.io/engineer_app_rpage/", label="Регистрация"))
+        .add(VKApps(app_id=54626032, hash='reg', label='Регистрация', owner_id=vk_id))
     ).get_json()
 
 keyboard4 = InlineKeyboardMarkup(inline_keyboard=[
