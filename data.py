@@ -22,8 +22,38 @@ def init_db():
     conn.commit()
     return conn
 
+def init_db_vk():
+    conn = psycopg2.connect(database="engineer.dbvk",
+                        user="postgres",
+                        password=password,
+                        host="localhost",
+                        port="5432")
+    cursor = conn.cursor()
+    cursor.execute("SET TIME ZONE 'Asia/Yekaterinburg';")
+    cursor.execute('''CREATE TABLE IF NOT EXISTS engineer (
+                    id SERIAL PRIMARY KEY,
+                    user_id BIGINT,
+                    payload JSONB,
+                    time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+''')
+    conn.commit()
+    return conn
+
 def init_user_db():
     conn = psycopg2.connect(database="userss",
+                        user="postgres",
+                        password=password,
+                        host="127.0.0.1",
+                        port="5432")
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS users (
+                   user_id BIGINT, name TEXT);''')
+    conn.commit()
+    return conn
+
+def init_user_db_vk():
+    conn = psycopg2.connect(database="userssvk",
                         user="postgres",
                         password=password,
                         host="127.0.0.1",
@@ -161,6 +191,18 @@ def delete_from_user_db(user_id):
 
 def user_to_check(user_id):
      with psycopg2.connect(database='userss',
+                            user="postgres",
+                            password=password,
+                            host="localhost",
+                            port="5432") as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT 1 FROM users WHERE user_id = %s", (user_id,))
+        result = cursor.fetchone()
+        conn.commit()
+        return True if result else False
+    
+def user_to_check_vk(user_id):
+     with psycopg2.connect(database='userssvk',
                             user="postgres",
                             password=password,
                             host="localhost",

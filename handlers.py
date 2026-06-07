@@ -141,7 +141,7 @@ async def answer_model(message: types.Message, state: FSMContext):
         await message.answer(text=f'{answer}')
     
     except Exception as e:
-        await message.answer("Произошла ошибка при обращении к нейросети. Проверьте, запущен ли Ollama.")
+        await message.answer("Технические работы.")
         print(f"Ошибка ИИ: {e}")
 
 # @router.message(F.text.lower().startswith('запиши'))

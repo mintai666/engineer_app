@@ -1,11 +1,13 @@
+import os
+os.environ["NO_PROXY"] = "127.0.0.1,localhost"
 import threading
 from aiogram import Bot, Dispatcher
-from data import init_db
+from data import init_db, init_db_vk
 from handlers import router
-import os
 from config import token, folder
 from server import create_app
-
+from vk_bot import run_vk
+import asyncio
 
 os.environ["PATH"] += os.pathsep + os.getcwd()
 
@@ -22,11 +24,11 @@ async def main():
     dp.shutdown.register(shutdown)
     dp.include_router(router=router)
     init_db()
-    # flask_thread = threading.Thread(target=run_flask)
-    # flask_thread.daemon = True # Поток умрет сам при выключении основного кода
-    # flask_thread.start()
-
-    await dp.start_polling(bot)
+    init_db_vk()
+    await asyncio.gather(
+        dp.start_polling(bot),  
+        run_vk()                
+    )
     
 async def startup():
     print('Включен')

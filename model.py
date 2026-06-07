@@ -20,11 +20,11 @@ docs = text_splitter.split_documents(documents)
 
 # 3. Создание векторной базы (локально)
 # Используем легкую модель для векторизации
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-m3")
 vector_db = FAISS.from_documents(docs, embeddings)
 
 # 4. Инициализация локальной нейросети (через Ollama)
-llm = OllamaLLM(model="llama3")
+llm = OllamaLLM(model="qwen2.5:14b-instruct-q4_K_M")
 
 # 5. Создание цепочки "Вопрос - Поиск в базе - Ответ"
 qa_chain = RetrievalQA.from_chain_type(
@@ -38,13 +38,13 @@ async def get_bearing_answer(question: str):
     # Добавляем жесткую инструкцию в промпт
     system_prompt = (
         f"Ты — технический эксперт по подшипникам. Отвечай ТОЛЬКО на основе базы знаний. "
-        f"Твои ответы должны быть  короткими, но содержащими всю нужную информацию "
+        f"отвечай кратко, только факты"
         f"Отвечай всегда ТОЛЬКО на русском языке"
         f"Если информации нет или вопрос не про подшипники, ответь: 'Я специализируюсь только на подшипниках'.\n"
-        f"Вопрос: {question}"
+        # f"Вопрос: {question}"
     )
     # response = qa_chain.invoke(full_query)
-    response = ollama.chat(model='llama3:8b', messages=[
+    response = ollama.chat(model='qwen2.5:14b-instruct-q4_K_M', messages=[
         {'role': 'system', 'content': system_prompt},
         {'role': 'user', 'content': question},
     ])

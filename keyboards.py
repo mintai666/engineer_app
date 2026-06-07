@@ -1,4 +1,5 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from vkbottle import Keyboard, KeyboardButtonColor, Text, OpenLink
 
 def app_url(user_id: int):
     app_url = f"https://mintai666.github.io/engineer_app/?user_id={user_id}"
@@ -22,6 +23,19 @@ main_kb = ReplyKeyboardMarkup(keyboard=[
 # keyboard3 = InlineKeyboardMarkup(inline_keyboard=[
 #     [InlineKeyboardButton(text='Профиль', callback_data='prof')]
 # ])
+
+kbvk_main = (
+        Keyboard(one_time=False, inline=True)
+        .add(Text("Помощь"), color=KeyboardButtonColor.PRIMARY)
+        .add(Text("Инлайн-меню"), color=KeyboardButtonColor.POSITIVE)
+        .row() # Перенос на следующую строку
+        .add(Text("Статистика"), color=KeyboardButtonColor.SECONDARY)
+    ).get_json()
+
+kbvk = (
+        Keyboard(one_time=False, inline=True)
+        .add(OpenLink(link="https://miint666.github.io/engineer_app_rpage/", label="Регистрация"))
+    ).get_json()
 
 keyboard4 = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Сформировать отчет', callback_data='form')]
